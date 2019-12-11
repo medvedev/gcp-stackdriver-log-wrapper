@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateWrapper(t *testing.T) {
-	wl, err := FromEnvironment(ctx, "testLogger")
+	wl, err := FromContext(ctx, "testLogger")
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,16 +33,16 @@ func TestCreateWrapper(t *testing.T) {
 }
 
 func TestNoMetadata(t *testing.T) {
-	wl, err := FromEnvironment(context.Background(), "testLogger")
+	wl, err := FromContext(context.Background(), "testLogger")
 	if err == nil || wl != nil {
 		t.Fatal("Expected error and nil wrapper")
 	}
-	assert.Equal(t, err.Error(), "Failed to get metadata")
+	assert.Equal(t, err.Error(), "Failed to get executionId")
 }
 
 func TestNoEnvironment(t *testing.T) {
 	projectID = ""
-	wl, err := FromEnvironment(ctx, "testLogger")
+	wl, err := FromContext(ctx, "testLogger")
 	if err == nil || wl != nil {
 		t.Fatal("Expected error and nil wrapper")
 	}
