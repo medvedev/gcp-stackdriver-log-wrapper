@@ -7,5 +7,6 @@ require (
 	cloud.google.com/go/logging v1.0.0
 	github.com/pkg/errors v0.8.1 // indirect
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f
+	google.golang.org/grpc v1.22.1 // indirect
 	gotest.tools v2.2.0+incompatible
 )

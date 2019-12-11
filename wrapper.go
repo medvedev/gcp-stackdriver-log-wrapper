@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/logging"
 
+	"cloud.google.com/go/functions/metadata"
 	"google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
@@ -20,6 +21,7 @@ var (
 type WrappedLogger struct {
 	monRes *monitoredres.MonitoredResource
 	logger *logging.Logger
+	labels map[string]string
 }
 
 // FromEnvironment creates WrappedLogger from GCP Cloud function runtime (environment)
@@ -50,6 +52,11 @@ func FromEnvironment(ctx context.Context, loggerName string) (*WrappedLogger, er
 			"region":        region,
 		},
 	}
+	ctxMetadata, err := metadata.FromContext(ctx)
+	if err != nil {
+		return nil, errors.New("Failed to get metadata")
+	}
+	wrappedLogger.labels = map[string]string{"execution_id": ctxMetadata.EventID}
 	return &wrappedLogger, nil
 }
 
