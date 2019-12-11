@@ -25,8 +25,8 @@ type WrappedLogger struct {
 	labels map[string]string
 }
 
-// FromRequest creates WrappedLogger from GCP Cloud function runtime (request + environment)
-func FromRequest(ctx context.Context, r *http.Request, loggerName string) (*WrappedLogger, error) {
+// FromRequest creates WrappedLogger from GCP Cloud function runtime (request)
+func FromRequest(r *http.Request, loggerName string) (*WrappedLogger, error) {
 	executionIDFromRequest := func() (string, error) {
 		executionID := r.Header["Function-Execution-Id"]
 		if len(executionID) == 0 {
@@ -34,7 +34,7 @@ func FromRequest(ctx context.Context, r *http.Request, loggerName string) (*Wrap
 		}
 		return executionID[0], nil
 	}
-	return foo(ctx, loggerName, executionIDFromRequest)
+	return foo(r.Context(), loggerName, executionIDFromRequest)
 }
 
 // FromContext creates WrappedLogger from GCP Cloud function runtime (context + environment)
