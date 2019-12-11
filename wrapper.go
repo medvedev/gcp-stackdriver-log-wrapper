@@ -81,6 +81,7 @@ func (wl *WrappedLogger) Log(severity logging.Severity, payload interface{}) {
 		Severity: severity,
 		Resource: wl.monRes,
 		Payload:  payload,
+		Labels:   wl.labels,
 	})
 }
 
