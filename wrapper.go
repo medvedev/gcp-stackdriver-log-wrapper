@@ -34,7 +34,7 @@ func FromRequest(r *http.Request, loggerName string) (*WrappedLogger, error) {
 		}
 		return executionID[0], nil
 	}
-	return foo(r.Context(), loggerName, executionIDFromRequest)
+	return createLogger(r.Context(), loggerName, executionIDFromRequest)
 }
 
 // FromContext creates WrappedLogger from GCP Cloud function runtime (context + environment)
@@ -46,10 +46,10 @@ func FromContext(ctx context.Context, loggerName string) (*WrappedLogger, error)
 		}
 		return ctxMetadata.EventID, nil
 	}
-	return foo(ctx, loggerName, executionIDFromMetadata)
+	return createLogger(ctx, loggerName, executionIDFromMetadata)
 }
 
-func foo(ctx context.Context, loggerName string, executionIDSupplier func() (string, error)) (*WrappedLogger, error) {
+func createLogger(ctx context.Context, loggerName string, executionIDSupplier func() (string, error)) (*WrappedLogger, error) {
 	var wrappedLogger WrappedLogger
 	monres, err := getMonitoredResourceFromEnvironment()
 	if err != nil {
@@ -61,11 +61,11 @@ func foo(ctx context.Context, loggerName string, executionIDSupplier func() (str
 		return nil, err
 	}
 	wrappedLogger.logger = client.Logger(loggerName)
-	executionId, err := executionIDSupplier()
+	executionID, err := executionIDSupplier()
 	if err != nil {
 		return nil, errors.New("Failed to get executionId")
 	}
-	wrappedLogger.labels = map[string]string{"execution_id": executionId}
+	wrappedLogger.labels = map[string]string{"execution_id": executionID}
 	return &wrappedLogger, nil
 }
 
