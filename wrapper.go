@@ -27,29 +27,33 @@ type WrappedLogger struct {
 
 // FromRequest creates WrappedLogger from GCP Cloud function runtime (request)
 func FromRequest(r *http.Request, loggerName string) (*WrappedLogger, error) {
-	executionIDFromRequest := func() (string, error) {
+	logger, err := createLogger(r.Context(), loggerName)
+	if err == nil {
 		executionID := r.Header["Function-Execution-Id"]
 		if len(executionID) == 0 {
-			return "", errors.New("Header 'Function-Execution-Id' is missing")
+			err = errors.New("Header 'Function-Execution-Id' is missing")
+		} else {
+			logger.labels = map[string]string{"execution_id": executionID[0]}
 		}
-		return executionID[0], nil
 	}
-	return createLogger(r.Context(), loggerName, executionIDFromRequest)
+	return logger, err
 }
 
 // FromContext creates WrappedLogger from GCP Cloud function runtime (context + environment)
 func FromContext(ctx context.Context, loggerName string) (*WrappedLogger, error) {
-	executionIDFromMetadata := func() (string, error) {
+	logger, err := createLogger(ctx, loggerName)
+	if err == nil {
 		ctxMetadata, err := metadata.FromContext(ctx)
 		if err != nil {
-			return "", errors.New("Failed to get metadata")
+			err = errors.New("Failed to get metadata")
+		} else {
+			logger.labels = map[string]string{"event_id": ctxMetadata.EventID}
 		}
-		return ctxMetadata.EventID, nil
 	}
-	return createLogger(ctx, loggerName, executionIDFromMetadata)
+	return logger, err
 }
 
-func createLogger(ctx context.Context, loggerName string, executionIDSupplier func() (string, error)) (*WrappedLogger, error) {
+func createLogger(ctx context.Context, loggerName string) (*WrappedLogger, error) {
 	var wrappedLogger WrappedLogger
 	monres, err := getMonitoredResourceFromEnvironment()
 	if err != nil {
@@ -61,11 +65,6 @@ func createLogger(ctx context.Context, loggerName string, executionIDSupplier fu
 		return nil, err
 	}
 	wrappedLogger.logger = client.Logger(loggerName)
-	executionID, err := executionIDSupplier()
-	if err != nil {
-		return nil, errors.New("Failed to get executionId")
-	}
-	wrappedLogger.labels = map[string]string{"execution_id": executionID}
 	return &wrappedLogger, nil
 }
 
